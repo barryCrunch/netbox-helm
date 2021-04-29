@@ -17,7 +17,7 @@ nginx:
 postgresql:
   dbName: netbox
   user: netbox
-  host: postgresql
+  host: postgresl
 
 admins: []
 
