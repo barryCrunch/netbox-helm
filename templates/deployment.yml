@@ -6,6 +6,8 @@ spec:
   metadata:
   selector:
     matchLabels:
+      app.kubernetes.io/name: {{ include "netbox.name" . }}
+      app.kubernetes.io/name: {{ .Release.Name }}
   template:
     spec:
       containers:
