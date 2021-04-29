@@ -25,6 +25,7 @@ data:
     NAPALM_PASSWORD = _load_secret('netbox', 'napalm_password')
     REDIS['PASSWORD'] = _load_secret('netbox', 'redis_password')
     SECRET_KEY = _load_secret('netbox', 'secret_key')
+    EMAIL['PASSWORD'] = _load_secret('netbox', 'email_password')
 
     # Post-process certain values
     CORS_ORIGIN_REGEX_WHITELIST = [re.compile(r) for r
