@@ -1,0 +1,130 @@
+netbox:
+  image:
+    repository: netboxcommunity/netbox
+    tag: "v2.5.13"
+    pullPolicy: Always
+
+superuser:
+  name: admin
+  email: admin@example.com
+
+nginx:
+  image:
+    repository: nginx
+    tag: 1.15-alpine
+    pullPolicy: Always
+
+postgresql:
+  dbName: netbox
+  user: netbox
+  host: postgresql
+
+admins: []
+
+banner:
+  top: ''
+  bottom: ''
+  login: ''
+
+basePath: ''
+
+changeRetention: 90
+
+cors:
+  originAllowAll: True
+  originWhitelist: []
+  originRegexWhitelist: []
+
+debug: false
+
+email:
+  server: ''
+  port: 25
+  username: ''
+  password: ''
+  timeout: 600
+  from: ''
+
+enforceGlobalUnique: false
+
+logging: {}
+
+loginRequired: false
+
+maintenanceMode: false
+
+maxPageSize: 1000
+
+napalm:
+  username: ''
+  password: ''
+  timeout: 30
+  args: {}
+
+paginateCount: 100
+
+preferIPV4: true
+
+redis:
+  external: true
+  host: redis
+  password: ""
+  port: 6379
+  database: 0
+  timeout: 300
+  ssl: false
+
+timeZone: UTC
+
+webhooks: false
+
+dateFormat: 'N j, Y'
+shortDateFormat: 'Y-m-d'
+timeFormat: 'g:i a'
+shortTimeFormat: 'H:i:s'
+dateTimeFormat: 'N j, Y g:i a'
+shortDateTimeFormat: 'Y-m-d H:i'
+
+existingSecret: ''
+
+## Storage configuration for media
+persistence:
+  enabled: true
+  ##
+  ## Existing claim to use
+  existingClaim: ""
+  ## Existing claim's subPath to use, e.g. "media" (optional)
+  subPath: ""
+  ##
+  ## Persistent Volume Storage Class
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  storageClass: "pure"
+  accessMode: ReadWriteOnce
+  ##
+  ## Persistant storage size request
+  size: 1Gi
+test: true
+## Storage configuration for reports
+reportsPersistence:
+  enabled: true
+  ##
+  ## Existing claim to use
+  existingClaim: ""
+  ## Existing claim's subPath to use, e.g. "media" (optional)
+  subPath: ""
+  ##
+  ## Persistent Volume Storage Class
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  storageClass: "pure"
+  accessMode: ReadWriteOnce
+  ##
+  ## Persistant storage size request
+  size: 1Gi

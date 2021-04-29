@@ -1,0 +1,114 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: netbox
+  labels:
+data:
+  configuration.yaml: |
+    import re
+    import yaml
+
+    def _load_yaml():
+      with open('/run/config/netbox/netbox.yaml', 'r') as f:
+        config = yaml.safe_load(f)
+
+      globals().update(config)
+
+    def _load_secret(name, key):
+      path = "/run/secrets/{name}/{key}".format(name=name, key=key)
+      with open(path, 'r') as f:
+        return f.read()
+
+    _load_yaml()
+
+    DATABASE['PASSWORD'] = _load_secret('netbox', db_password)
+    NAPALM_PASSWORD = _load_secret('netbox', 'napalm_password')
+    REDIS['PASSWORD'] = _load_secret('netbox', 'redis_password')
+    SECRET_KEY = _load_secret('netbox', 'secret_key')
+
+    # Post-process certain values
+    CORS_ORIGIN_REGEX_WHITELIST = [re.compile(r) for r
+                                   in CORS_ORIGIN_REGEX_WHITELIST]
+
+  netbox.yaml: |
+    ALLOWED_HOSTS: {{ .Values.allowedHosts | toJson }}
+    DATABASE:
+      NAME: {{ .Values.postgresql.dbName }}
+      USER: {{ .Values.postgresql.user }}
+      HOST: {{ .Values.postgresql.host }}
+    ADMINS: {{ .Values.admins | toJson }}
+    BANNER_TOP: {{ .Values.banner.top | quote }}
+    BANNER_BOTTOM: {{ .Values.banner.bottom | quote }}
+    BANNER_LOGIN: {{ .Values.banner.login | quote }}
+    BASE_PATH: {{ .Values.basePath | quote }}
+    CHANGELOG_RETENTION: {{ .Values.changeRetention | int }}
+    CORS_ORIGIN_ALLOW_ALL: {{  .Values.cors.originAllowAll | toJson }}
+    CORS_ORIGIN_WHITELIST: {{ .Values.cors.originWhitelist | toJson }}
+    CORS_ORIGIN_REGEX_WHITELIST: {{ .Values.cors.originRegexWhitelist | toJson }}
+    DEBUG: {{ .Values.debug | toJson }}
+    EMAIL:
+      SERVER: {{ .Values.email.server | quote}}
+      PORT: {{ .Values.email.port | int }}
+      USERNAME: {{ .Values.email.username | quote }}
+      PASSWORD: {{ .Values.email.password | quote }}
+      TIMEOUT: {{ .Values.email.timeout | int }}
+      FROM_EMAIL: {{ .Values.email.from| quote }}
+    ENFORCE_GLOBAL_UNIQUE: {{ toJson .Values.enforceGlobalUnique }}
+    LOGGING: {{ .Values.logging | toJson }}
+    LOGIN_REQUIRED: {{ .Values.loginRequired | toJson }}
+    MAINTENANCE_MODE: {{ .Values.maintenanceMode | toJson }}
+    MAX_PAGE_SIZE: {{ .Values.maxPageSize | toJson }}
+    NAPALM_USERNAME: {{ .Values.napalm.username }}
+    NAPALM_TIMEOUT: {{ .Values.napalm.timeout | int }}
+    NAPALM_ARGS: {{ .Values.napalm.args | toJson }}
+    PAGINATE_COUNT: {{ .Values.paginateCount | int }}
+    PREFER_IPV4: {{ .Values.preferIPV4 | toJson }}
+    REDIS:
+        HOST: {{ .Values.redis.host | quote }}
+        PORT: {{ .Values.redis.port | int }}
+        DATABASE: {{ .Values.redis.database | int }}
+        DEFAULT_TIMEOUT: {{ .Values.redis.timeout | int}}
+        SSL: {{ .Values.redis.ssl | toJson }}
+    WEBHOOKS_ENABLED: {{ .Values.webhooks | toJson }}
+    SHORT_DATE_FORMAT: {{ .Values.shortDateFormat | quote }}
+    TIME_FORMAT: {{ .Values.timeFormat | quote }}
+    SHORT_TIME_FORMAT: {{ .Values.shortTimeFormat | quote }}
+    DATETIME_FORMAT: {{ .Values.dateTimeFormat | quote }}
+    SHORT_DATETIME_FORMAT: {{ .Values.shortDateTimeFormat | quote }}
+
+  nginx.conf: |
+    worker_processes 1;
+
+    error_log /dev/stderr info;
+
+    events {
+      worker_connections 1024;
+    }
+
+    http {
+      include              /etc/nginx/mime.types;
+      default_type         application/octet-stream;
+      sendfile             on;
+      tcp_nopush           on;
+      keepalive_timeout    65;
+      gzip                 on;
+      server_tokens        off;
+      client_max_body_size 10M;
+
+      server {
+        listen      80;
+        access_log  off;
+
+        location /static/ {
+          alias /opt/netbox/netbox/static/;
+        }
+
+        location / {
+          proxy_pass http://localhost:8001;
+          proxy_set_header X-Forwarded-Host $http_host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-Proto $scheme;
+          add_header P3P 'CP="ALL DSP COR PSAa PSDa OUR NOR ONL UNI COM NAV"';
+        }
+      }
+    }
